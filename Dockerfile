@@ -1,4 +1,6 @@
-FROM maven:3.9.4-eclipse-temurin-25-alpine AS builder
+FROM eclipse-temurin:25-jdk-alpine AS builder
+
+RUN apk add --no-cache maven
 
 WORKDIR /app
 
@@ -10,7 +12,7 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests -B --quiet
 
-FROM eclipse-temurin:25-jre-alpine  
+FROM eclipse-temurin:25-alpine  
 
 WORKDIR /app
 
