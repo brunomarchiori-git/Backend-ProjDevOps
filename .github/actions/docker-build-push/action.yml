@@ -42,3 +42,4 @@ runs:
         tags: |
           "${{ inputs.image-name }}:${{ inputs.image-tag }}"
           "${{ inputs.image-name }}:latest"
+          
