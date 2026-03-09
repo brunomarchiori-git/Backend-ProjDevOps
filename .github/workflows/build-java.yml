@@ -8,7 +8,7 @@ on:
 
 env:
   IMAGE_NAME: brunomarch/build-java
-  JAVA_VERSION: '25'
+  JAVA_VERSION: "25"
 
 jobs:
   build:
@@ -29,24 +29,24 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-    - name: Checkout
-      uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    - name: Setup Java
-      uses: actions/setup-java@v5
-      with:
-        java-version: '25'
-        distribution: 'temurin'
-        cache: 'maven'
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: "temurin"
+          cache: "maven"
 
-    - name: Build with Maven
-      run: mvn clean install
+      - name: Build with Maven
+        run: mvn clean install
 
-    - name: Run tests
-      run: mvn test
+      - name: Run tests
+        run: mvn test
 
-  docker-build:
-    name: Build Docker Image
+  docker:
+    name: Docker Build & Push
     runs-on: [self-hosted, Linux, build]
     needs: build
     if: github.event_name == 'push'
@@ -55,29 +55,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Build da imagem (sem push)
+      - name: Build (e Push condicional) da imagem
         uses: ./.github/actions/docker-build-push
         with:
-          image-name: ${{ env.IMAGE_NAME }}
-          image-tag: ${{ github.sha }}
-          push: "false"
-
-  docker-push:
-    name: Docker Push
-    runs-on: [self-hosted, Linux, build]
-    needs: docker-build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Build e Push da imagem
-        uses: ./.github/actions/docker-build-push
-        with:
-          image-name: ${{ env.IMAGE_NAME }}
-          image-tag: ${{ github.sha }}
-          push: "true"
-          docker-username: ${{ secrets.DOCKER_USERNAME }}
-          docker-password: ${{ secrets.DOCKER_PASSWORD }}
-          
+          image-name: "${{ env.IMAGE_NAME }}"
+          image-tag: "${{ github.sha }}"
+          push: ${{ github.ref == 'refs/heads/main' }}
+          docker-username: "${{ secrets.DOCKER_USERNAME }}"
+          docker-password: "${{ secrets.DOCKER_PASSWORD }}"
