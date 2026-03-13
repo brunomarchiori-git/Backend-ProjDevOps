@@ -1,19 +1,20 @@
-name: Java Build
+name: CI - Java Build e Test
+
 on:
-  push:
-    branches:
-      - main
-      - develop
   pull_request:
+    branches:
+      - develop
+      - main
 
 env:
-  IMAGE_NAME: brunomarch/build-java
   JAVA_VERSION: "25"
+  IMAGE_NAME: brunomarch/build-java
 
 jobs:
   build:
     name: Build e Test
     runs-on: [self-hosted, Linux, build]
+
     services:
       postgres:
         image: postgres:latest
@@ -28,6 +29,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -35,31 +37,28 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
-          java-version: "25"
-          distribution: "temurin"
-          cache: "maven"
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
 
-      - name: Build with Maven
+      - name: Build
         run: mvn clean install
 
-      - name: Run tests
+      - name: Run Tests
         run: mvn test
 
-  docker:
-    name: Docker Build & Push
+  docker-build:
+    name: Docker Build (validação)
     runs-on: [self-hosted, Linux, build]
     needs: build
-    if: github.event_name == 'push'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Build (e Push condicional) da imagem
+      - name: Build da imagem (sem push)
         uses: ./.github/actions/docker-build-push
         with:
           image-name: "${{ env.IMAGE_NAME }}"
           image-tag: "${{ github.sha }}"
-          push: ${{ github.ref == 'refs/heads/main' }}
-          docker-username: "${{ secrets.DOCKER_USERNAME }}"
-          docker-password: "${{ secrets.DOCKER_PASSWORD }}"
+          push: "false"
