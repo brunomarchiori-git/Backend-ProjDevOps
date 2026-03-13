@@ -12,7 +12,7 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests -B --quiet
 
-FROM eclipse-temurin:25-alpine  
+FROM eclipse-temurin:25-alpine
 
 WORKDIR /app
 
